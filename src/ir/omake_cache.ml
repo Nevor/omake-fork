@@ -116,7 +116,7 @@ type 'a memo =
      memo_result       : 'a Omake_cache_type.memo_result
    }
 
- and tab_entry = 
+ and tab_entry =
    (string * Digest.t option) option
    (* None = node does not exist
       Some(cstat,None) = node exists, but digest is unknown
@@ -455,11 +455,11 @@ let ex_set cache node ex_flag =
   try
     let old_flag = Omake_node.NodeTable.find cache.cache_exists node in
     if ex_flag <> old_flag then
-      cache.cache_exists <- 
+      cache.cache_exists <-
         Omake_node.NodeTable.add cache.cache_exists node ex_flag
   with
     | Not_found ->
-        cache.cache_exists <- 
+        cache.cache_exists <-
           Omake_node.NodeTable.add cache.cache_exists node ex_flag;
         cache.cache_exists_num <- cache.cache_exists_num + 1;
         if cache.cache_exists_num > 2*ex_limit then
@@ -467,10 +467,10 @@ let ex_set cache node ex_flag =
 
 
 let ex_reset cache node =
-  cache.cache_exists <- 
+  cache.cache_exists <-
     Omake_node.NodeTable.remove cache.cache_exists node
   (* we don't update cache_exists_num, which is only an upper bound *)
-  
+
 
 
 (************************************************************************
@@ -586,10 +586,10 @@ let digest_large name file_size =
 let probe_digest_file =
   I.create "Omake_cache.digest_file"
 
-let digest_file name = 
+let digest_file name =
   I.instrument probe_digest_file
   (fun file_size ->
-Printf.eprintf "digest_file\n%!";
+(*Printf.eprintf "digest_file\n%!";*)
    if file_size > large_file_size then
       digest_large name file_size
    else
@@ -597,7 +597,7 @@ Printf.eprintf "digest_file\n%!";
   )
 
 
-let probe_stat_file = 
+let probe_stat_file =
   I.create "Omake_cache.stat_file"
 
 let stat_file_update_digest ?old cache node =
@@ -616,7 +616,7 @@ let stat_file_update_digest ?old cache node =
         let digest =
           (* Old: do a conditional update of the digest *)
           match old with
-            | Some ({ nmemo_digest = Some digest; _ },cstats') 
+            | Some ({ nmemo_digest = Some digest; _ },cstats')
                   when stats_equal cstats cstats' ->
                 digest
             | _ ->
@@ -756,7 +756,7 @@ let has_file_stat_1 ?compact_stat ?digest cache node : bool option =
         these stats
       - [digest]: if passed, checks whether the file exists and has this
         digest
- 
+
      Returns None if the file does not exist. Otherwise [Some b], and [b]
      says whether the above criteria are fulfilled.
    *)
@@ -805,7 +805,7 @@ let has_file_stat_1 ?compact_stat ?digest cache node : bool option =
             | Some(cstats,dg) -> check cstats (Some dg)
 
 let has_file_stat ?compact_stat ?digest cache node : bool option =
-  Printf.eprintf "has_file_stat(%s,cstat=%s,digest=%s): "
+(*  Printf.eprintf "has_file_stat(%s,cstat=%s,digest=%s): "
                  (name_of node)
                  ( match compact_stat with
                      | None -> "na"
@@ -814,12 +814,12 @@ let has_file_stat ?compact_stat ?digest cache node : bool option =
                  ( match digest with
                      | None -> "na"
                      | Some dg -> Lm_string_util.hexify_sub dg 0 6
-                 );
+                 );*)
   let r = has_file_stat_1 ?compact_stat ?digest cache node in
-  ( match r with
+(*  ( match r with
       | None -> Printf.eprintf "None\n%!"
       | Some b -> Printf.eprintf "%B\n%!" b
-  );
+  ); *)
   r
 
 
@@ -966,14 +966,14 @@ let compact_stat cache node =
        | NodeSquashed
        | NodeExists ->
             compact_stat_file cache core
-  
+
 
 (*
  * Turn a set into a table of stat info.
  *)
 let stat_set cache nodes =
    Omake_node.NodeSet.fold (fun table node ->
-         Omake_node.NodeTable.add table node (stat cache node)) 
+         Omake_node.NodeTable.add table node (stat cache node))
     Omake_node.NodeTable.empty nodes
 
 let stat_set_for_add ?(compact=false) cache nodes =
@@ -987,7 +987,7 @@ let stat_set_for_add ?(compact=false) cache nodes =
              match stat cache node with
                | None -> None
                | Some(cstat,dg) -> Some (cstat, Some dg) in
-         Omake_node.NodeTable.add table node out) 
+         Omake_node.NodeTable.add table node out)
     Omake_node.NodeTable.empty nodes
 
 
@@ -1025,7 +1025,7 @@ let force_stat cache node =
 
 let force_stat_set cache nodes =
    Omake_node.NodeSet.fold (fun table node ->
-         Omake_node.NodeTable.add table node (force_stat cache node)) 
+         Omake_node.NodeTable.add table node (force_stat cache node))
     Omake_node.NodeTable.empty nodes
 
 let force_stat_table cache nodes =
@@ -1141,10 +1141,10 @@ let add_digests cache key target =
     if p1 || p2 then (
       let memo' =
         { memo with
-          memo_targets_tab = 
+          memo_targets_tab =
             (if p1 then complement_stat_set_for_add cache memo.memo_targets_tab
              else memo.memo_targets_tab);
-          memo_deps_tab = 
+          memo_deps_tab =
             (if p1 then complement_stat_set_for_add cache memo.memo_deps_tab
              else memo.memo_deps_tab);
         } in
@@ -1171,7 +1171,7 @@ let targets_equal_1 cache targets_tab =
          | None -> (* the recorded target did not exist as file *)
              has_stat cache target = None
     )
-    targets_tab                        
+    targets_tab
 
 
 let targets_equal_2 cache targets_tab =
@@ -1186,8 +1186,8 @@ let targets_equal_2 cache targets_tab =
          | None -> (* the recorded target did not exist as file *)
              has_stat cache target = None
     )
-    targets_tab                        
-    
+    targets_tab
+
 let targets_equal cache targets_tab =
   try
     targets_equal_1 cache targets_tab || targets_equal_2 cache targets_tab
@@ -1205,7 +1205,7 @@ let deps_equal_1 cache deps deps_tab =
   (* A quick check only using Unix.stat. Not_found if files are missing *)
   let count1 = Omake_node.NodeSet.cardinal deps in
   let count2 = Omake_node.NodeTable.cardinal deps_tab in
-  (count1 = count2) && 
+  (count1 = count2) &&
     Omake_node.NodeSet.for_all
       (fun dep ->
          match Omake_node.NodeTable.find deps_tab dep with
@@ -1224,7 +1224,7 @@ let deps_equal_2 cache deps deps_tab =
   (* A deep check using digests (if available) *)
   let count1 = Omake_node.NodeSet.cardinal deps in
   let count2 = Omake_node.NodeTable.cardinal deps_tab in
-  (count1 = count2) && 
+  (count1 = count2) &&
     Omake_node.NodeSet.for_all
       (fun dep ->
          match Omake_node.NodeTable.find deps_tab dep with
@@ -1236,7 +1236,7 @@ let deps_equal_2 cache deps deps_tab =
                has_stat cache dep = None
       )
       deps
-      
+
 let deps_equal cache deps deps_tab =
   try
     deps_equal_1 cache deps deps_tab || deps_equal_2 cache deps deps_tab
@@ -1361,7 +1361,7 @@ let force_stat_delayed cache node =
 
 
 let process_delayed_stat_requests cache =
- Printf.eprintf "process_delayed n=%d\n%!" (Queue.length cache.cache_delayed);
+(* Printf.eprintf "process_delayed n=%d\n%!" (Queue.length cache.cache_delayed); *)
   ( try
       while true do
         let node = Queue.take cache.cache_delayed in
@@ -1379,8 +1379,8 @@ let process_delayed_stat_requests cache =
     with
       | Queue.Empty ->
           ()
-  );
-Printf.eprintf "process_delayed done\n%!"
+  )
+(*Printf.eprintf "process_delayed done\n%!"*)
 
 (************************************************************************
  * Values.  In this case, we use the key to find the memo.
@@ -1404,7 +1404,7 @@ let find_value_memo cache key is_static deps1 commands1 =
          _
        } = memo
    in
-      if hash1 = hash2 && commands1 = commands2 && 
+      if hash1 = hash2 && commands1 = commands2 &&
            Omake_node.NodeSet.equal deps1 deps2 then
         memo
       else
@@ -1618,7 +1618,7 @@ let ls_exe_path_win32 cache auto_rehash dirs =
             in
             let entries =
                Lm_string_set.StringMTable.fold_all (fun entries name info ->
-                     Lm_string_set.StringTable.add entries name (ref (ExeEntryCore info))) 
+                     Lm_string_set.StringTable.add entries name (ref (ExeEntryCore info)))
                 Lm_string_set.StringTable.empty entries
             in
             let stats = Lazy.force stats in
@@ -1642,7 +1642,7 @@ let ls_exe_path_unix cache auto_rehash dirs =
     in
     let entries =
       Lm_string_set.StringMTable.fold_all (fun entries name info ->
-        Lm_string_set.StringTable.add entries name (ref (ExeEntryCore info))) 
+        Lm_string_set.StringTable.add entries name (ref (ExeEntryCore info)))
         Lm_string_set.StringTable.empty entries
     in
     let stats = Lazy.force stats in

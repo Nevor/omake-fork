@@ -139,12 +139,12 @@ let spec =
  * Main program.
  *)
 let main (options : Omake_options.t) =
-  begin 
+  begin
     Sys.catch_break true ;
     (if Sys.os_type <> "Win32" then
        Sys.set_signal Sys.sigpipe Signal_ignore );
     let path = Omake_main_util.chroot () in
-    Omake_build.build options 
+    Omake_build.build options
       (if  options.cd_root then
          "."
        else
@@ -152,13 +152,13 @@ let main (options : Omake_options.t) =
       (match !targets with
        | [] -> [".DEFAULT"]
        | l -> List.rev l);
-    if !debug_hash then 
+    if !debug_hash then
       Omake_main_util.print_hash_stats ();
     if !extended_rusage then (
       let r = Unix.times() in
       let open Unix in
       printf "Resources used by main process:     \
-              user %.2fseconds, system %.2fseconds\n" 
+              user %.2fseconds, system %.2fseconds\n"
              r.tms_utime r.tms_stime;
       printf "Resources used incl. sub processes: \
               user %.2fseconds, system %.2fseconds\n"
@@ -172,14 +172,14 @@ let _ =
   let add_unknown options s =
     begin
       ( match Lm_string_util.bi_split  '=' s  with
-        | (v,x) -> 
+        | (v,x) ->
           Omake_build_util.add_command_def v x
         | exception Not_found -> targets := s :: !targets);
       options, !shell_flag
     end
   in
   let exe = Lm_filename_util.root (Filename.basename (Sys.argv.(0))) in
-  let () = 
+  let () =
     if exe = "osh" then
       shell_flag := true in
 
@@ -204,7 +204,7 @@ let _ =
   Lm_thread.debug_lock := !Lm_thread_pool.debug_thread;
   (* Run it *)
   match !server_flag with
-  | Some cwd -> Omake_main_util.main_remote cwd options !targets 
+  | Some cwd -> Omake_main_util.main_remote cwd options !targets
   | None ->
     if !shell_flag then
       Omake_shell.shell options !command_string (List.rev !targets)
