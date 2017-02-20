@@ -355,7 +355,7 @@ public.LaTeXDocument(name, texfiles) =
     $(name)$(ext): $(TEXDEPS) $(TEXFILES) :effects: $(name).aux $(name).log $(name).ind $(name).out
         if $(gt $(length $(TEXVARS)), 0)
             echo "Enviroment variables $(concat $', ', $(TEXVARS)) set to $(getenv $(nth 0, $(TEXVARS)))"
-        run-latex $(prog) $(flags) $(name)
+            run-latex $(prog) $(flags) $(name)
         if $(and $(file-exists  $(name).aux), $(grep q, $'\\citation', $(name).aux), $(grep q, $'\\bibdata', $(name).aux))
             $(BIBTEX) $(name)
             run-latex $(prog) $(flags) $(name)
